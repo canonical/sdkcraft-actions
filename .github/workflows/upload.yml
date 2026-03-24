@@ -1,0 +1,68 @@
+name: Build and Upload SDK
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref to checkout. Defaults to the ref that triggered the workflow."
+        required: false
+        type: string
+      platforms:
+        description: 'JSON array of platforms, e.g. ["amd64","arm64","riscv64"]'
+        required: true
+        type: string
+      platform-flag:
+        description: "Flag passed to sdkcraft pack: --build-for or --platform"
+        required: false
+        type: string
+        default: "--build-for"
+      track:
+        description: "Release track to upload to (e.g. 1.24). Defaults to the branch name."
+        required: false
+        type: string
+      risk:
+        description: "Risk level to release to (e.g. edge, beta, stable)."
+        required: false
+        type: string
+        default: "edge"
+    secrets:
+      SDKCRAFT_STORE_CREDENTIALS:
+        required: true
+
+jobs:
+  build-and-upload:
+    runs-on:
+      - self-hosted
+      - linux
+      - jammy
+      - x64
+      - xlarge
+    strategy:
+      matrix:
+        platform: ${{ fromJSON(inputs.platforms) }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Install sdkcraft
+        run: sudo snap install sdkcraft --edge --classic
+
+      - name: Define the track name to upload to
+        run: |
+          if [ -n "${{ inputs.track }}" ]; then
+            TRACK="${{ inputs.track }}"
+          elif [ -n "${{ github.event.inputs.branch }}" ]; then
+            TRACK="${{ github.event.inputs.branch }}"
+          else
+            TRACK="${GITHUB_REF#refs/heads/}"
+          fi
+          echo "TRACK=$TRACK" >> $GITHUB_ENV
+
+      - name: Pack SDK for ${{ matrix.platform }}
+        run: sdkcraft pack ${{ inputs.platform-flag }} ${{ matrix.platform }}
+
+      - name: Upload SDK for ${{ matrix.platform }}
+        env:
+          SDKCRAFT_STORE_CREDENTIALS: ${{ secrets.SDKCRAFT_STORE_CREDENTIALS }}
+        run: sdkcraft upload *.sdk --release ${{ env.TRACK }}/${{ inputs.risk }}

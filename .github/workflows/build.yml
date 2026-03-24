@@ -1,0 +1,21 @@
+name: Build SDK
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - linux
+      - jammy
+      - x64
+      - xlarge
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install sdkcraft
+        run: sudo snap install sdkcraft --edge --classic
+
+      - name: Pack SDK
+        run: sdkcraft pack

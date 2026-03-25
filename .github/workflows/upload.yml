@@ -45,6 +45,14 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+      - name: Checkout shell helpers
+        uses: actions/checkout@v6
+        with:
+          repository: canonical/sdkcraft-actions
+          path: .sdkcraft-actions
+          sparse-checkout: helpers.sh
+          sparse-checkout-cone-mode: false
+
       - name: Install sdkcraft
         run: sudo snap install sdkcraft --edge --classic
 
@@ -60,9 +68,13 @@ jobs:
           echo "TRACK=$TRACK" >> $GITHUB_ENV
 
       - name: Pack SDK for ${{ matrix.platform }}
-        run: sdkcraft pack ${{ inputs.platform-flag }} ${{ matrix.platform }}
+        run: |
+          source .sdkcraft-actions/helpers.sh
+          retry 3 sdkcraft pack ${{ inputs.platform-flag }} ${{ matrix.platform }}
 
       - name: Upload SDK for ${{ matrix.platform }}
         env:
           SDKCRAFT_STORE_CREDENTIALS: ${{ secrets.SDKCRAFT_STORE_CREDENTIALS }}
-        run: sdkcraft upload *.sdk --release ${{ env.TRACK }}/${{ inputs.risk }}
+        run: |
+          source .sdkcraft-actions/helpers.sh
+          retry 3 sdkcraft upload *.sdk --release ${{ env.TRACK }}/${{ inputs.risk }}

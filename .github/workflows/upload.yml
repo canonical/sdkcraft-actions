@@ -7,6 +7,11 @@ on:
         description: "Git ref to checkout. Defaults to the ref that triggered the workflow."
         required: false
         type: string
+      runs-on:
+        description: "JSON array of runner labels."
+        required: false
+        type: string
+        default: '["self-hosted","linux","jammy","x64","xlarge"]'
       platforms:
         description: 'JSON array of platforms, e.g. ["amd64","arm64","riscv64"]'
         required: true
@@ -31,12 +36,7 @@ on:
 
 jobs:
   build-and-upload:
-    runs-on:
-      - self-hosted
-      - linux
-      - jammy
-      - x64
-      - xlarge
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
     strategy:
       matrix:
         platform: ${{ fromJSON(inputs.platforms) }}

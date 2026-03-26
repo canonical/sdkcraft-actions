@@ -75,6 +75,6 @@ jobs:
           SDKCRAFT_STORE_CREDENTIALS: ${{ secrets.SDKCRAFT_STORE_CREDENTIALS }}
         with:
           max_attempts: 3
-          retry_wait_seconds: 5
+          retry_wait_seconds: 3600 # 1 hour
           timeout_minutes: 10
           command: sdkcraft upload *.sdk --release ${{ env.TRACK }}/${{ inputs.risk }}

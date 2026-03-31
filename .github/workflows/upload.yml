@@ -46,7 +46,12 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Install sdkcraft
-        run: sudo snap install sdkcraft --edge --classic
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          max_attempts: 3
+          retry_wait_seconds: 60
+          timeout_minutes: 10
+          command: sudo snap install sdkcraft --edge --classic
 
       - name: Define the track name to upload to
         run: |
@@ -65,7 +70,7 @@ jobs:
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         with:
           max_attempts: 3
-          retry_wait_seconds: 5
+          retry_wait_seconds: 60
           timeout_minutes: 120
           command: sdkcraft pack ${{ inputs.platform-flag }} ${{ matrix.platform }}
 

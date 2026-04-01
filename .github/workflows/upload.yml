@@ -41,40 +41,48 @@ jobs:
       matrix:
         platform: ${{ fromJSON(inputs.platforms) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.ref }}
+          persist-credentials: false
 
       - name: Install sdkcraft
         run: sudo snap install sdkcraft --edge --classic
 
       - name: Define the track name to upload to
         run: |
-          if [ -n "${{ inputs.track }}" ]; then
-            TRACK="${{ inputs.track }}"
-          elif [ -n "${{ github.event.inputs.branch }}" ]; then
-            TRACK="${{ github.event.inputs.branch }}"
+          if [ -n "$INPUT_TRACK" ]; then
+            TRACK="$INPUT_TRACK"
+          elif [ -n "$INPUT_BRANCH" ]; then
+            TRACK="$INPUT_BRANCH"
           else
             TRACK="${GITHUB_REF#refs/heads/}"
           fi
           echo "TRACK=$TRACK" >> $GITHUB_ENV
+        env:
+          INPUT_TRACK: ${{ inputs.track }}
+          INPUT_BRANCH: ${{ github.event.inputs.branch }}
 
       - name: Pack SDK for ${{ matrix.platform }}
         # use a third-party retry as we cannot fetch a helper from this private repo
         # in the context of another repo's workflow.
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        env:
+          INPUT_PLATFORM_FLAG: ${{ inputs.platform-flag }}
+          MATRIX_PLATFORM: ${{ matrix.platform }}
         with:
           max_attempts: 3
           retry_wait_seconds: 5
           timeout_minutes: 120
-          command: sdkcraft pack ${{ inputs.platform-flag }} ${{ matrix.platform }}
+          command: sdkcraft pack "$INPUT_PLATFORM_FLAG" "$MATRIX_PLATFORM"
 
       - name: Upload SDK for ${{ matrix.platform }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
+          INPUT_RISK: ${{ inputs.risk }}
           SDKCRAFT_STORE_CREDENTIALS: ${{ secrets.SDKCRAFT_STORE_CREDENTIALS }}
         with:
           max_attempts: 3
           retry_wait_seconds: 3600 # 1 hour
           timeout_minutes: 10
-          command: sdkcraft upload *.sdk --release ${{ env.TRACK }}/${{ inputs.risk }}
+          command: sdkcraft upload *.sdk --release "${TRACK}/${INPUT_RISK}"

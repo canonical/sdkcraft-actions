@@ -21,6 +21,10 @@ on:
         required: false
         type: string
         default: "--build-for"
+      subdirectory:
+        description: "Subdirectory where SDK is defined."
+        required: false
+        type: string
       track:
         description: "Release track to upload to (e.g. 1.24). Defaults to the branch name."
         required: false
@@ -70,19 +74,25 @@ jobs:
         env:
           INPUT_PLATFORM_FLAG: ${{ inputs.platform-flag }}
           MATRIX_PLATFORM: ${{ matrix.platform }}
+          SUBDIRECTORY: ${{ inputs.subdirectory }}
         with:
           max_attempts: 3
           retry_wait_seconds: 5
           timeout_minutes: 120
-          command: sdkcraft pack "$INPUT_PLATFORM_FLAG" "$MATRIX_PLATFORM"
+          command: |
+            [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
+            sdkcraft pack "$INPUT_PLATFORM_FLAG" "$MATRIX_PLATFORM"
 
       - name: Upload SDK for ${{ matrix.platform }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           INPUT_RISK: ${{ inputs.risk }}
           SDKCRAFT_STORE_CREDENTIALS: ${{ secrets.SDKCRAFT_STORE_CREDENTIALS }}
+          SUBDIRECTORY: ${{ inputs.subdirectory }}
         with:
           max_attempts: 3
           retry_wait_seconds: 3600 # 1 hour
           timeout_minutes: 10
-          command: sdkcraft upload *.sdk --release "${TRACK}/${INPUT_RISK}"
+          command: |
+            [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
+            sdkcraft upload *.sdk --release "${TRACK}/${INPUT_RISK}"

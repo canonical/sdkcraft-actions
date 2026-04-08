@@ -86,7 +86,7 @@ jobs:
           timeout_minutes: 120
           command: |
             [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
-            sdkcraft pack "$INPUT_PLATFORM_FLAG" "$MATRIX_PLATFORM"
+            sdkcraft --verbose pack "$INPUT_PLATFORM_FLAG" "$MATRIX_PLATFORM"
 
       - name: Upload SDK for ${{ matrix.platform }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
@@ -100,4 +100,4 @@ jobs:
           timeout_minutes: 10
           command: |
             [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
-            sdkcraft upload *.sdk --release "${TRACK}/${INPUT_RISK}"
+            sdkcraft --verbose upload *.sdk --release "${TRACK}/${INPUT_RISK}"

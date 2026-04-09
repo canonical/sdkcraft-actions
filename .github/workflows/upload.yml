@@ -100,4 +100,6 @@ jobs:
           timeout_minutes: 10
           command: |
             [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
-            sdkcraft --verbose upload *.sdk --release "${TRACK}/${INPUT_RISK}"
+            for sdk in *.sdk; do
+              sdkcraft --verbose upload "$sdk" --release "${TRACK}/${INPUT_RISK}"
+            done

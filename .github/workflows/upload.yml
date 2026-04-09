@@ -34,6 +34,10 @@ on:
         required: false
         type: string
         default: "edge"
+      branch:
+        description: "Branch to release to (e.g. dev)."
+        required: false
+        type: string
     secrets:
       SDKCRAFT_STORE_CREDENTIALS:
         required: true
@@ -92,6 +96,7 @@ jobs:
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           INPUT_RISK: ${{ inputs.risk }}
+          INPUT_BRANCH: ${{ inputs.branch }}
           SDKCRAFT_STORE_CREDENTIALS: ${{ secrets.SDKCRAFT_STORE_CREDENTIALS }}
           SUBDIRECTORY: ${{ inputs.subdirectory }}
         with:
@@ -101,5 +106,5 @@ jobs:
           command: |
             [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
             for sdk in *.sdk; do
-              sdkcraft --verbose upload "$sdk" --release "${TRACK}/${INPUT_RISK}"
+              sdkcraft --verbose upload "$sdk" --release "${TRACK}/${INPUT_RISK}${INPUT_BRANCH:+/$INPUT_BRANCH}"
             done

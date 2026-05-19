@@ -2,6 +2,12 @@ name: Build SDK
 
 on:
   workflow_call:
+    inputs:
+      run-tests:
+        description: "Run sdkcraft tests after building (requires tests/ directory)."
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   build:
@@ -19,3 +25,12 @@ jobs:
 
       - name: Pack SDK
         run: sdkcraft pack
+
+      - name: Run tests
+        if: inputs.run-tests
+        run: |
+          if [ -f tests/spread.yaml ]; then
+            sdkcraft --verbose test
+          else
+            echo "No tests/spread.yaml found – skipping."
+          fi

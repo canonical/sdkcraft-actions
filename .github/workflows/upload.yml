@@ -38,6 +38,11 @@ on:
         description: "Branch to release to (e.g. dev)."
         required: false
         type: string
+      run-tests:
+        description: "Run sdkcraft tests after building, before upload."
+        required: false
+        type: boolean
+        default: false
     secrets:
       SDKCRAFT_STORE_CREDENTIALS:
         required: true
@@ -91,6 +96,23 @@ jobs:
           command: |
             [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
             sdkcraft --verbose pack "$INPUT_PLATFORM_FLAG" "$MATRIX_PLATFORM"
+
+      - name: Run tests for ${{ matrix.platform }}
+        if: inputs.run-tests
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        env:
+          SUBDIRECTORY: ${{ inputs.subdirectory }}
+        with:
+          max_attempts: 2
+          retry_wait_seconds: 60
+          timeout_minutes: 120
+          command: |
+            [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
+            if [ -f tests/spread.yaml ]; then
+              sdkcraft --verbose test
+            else
+              echo "No tests/spread.yaml found – skipping."
+            fi
 
       - name: Upload SDK for ${{ matrix.platform }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2

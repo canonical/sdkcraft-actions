@@ -54,6 +54,10 @@ jobs:
       matrix:
         platform: ${{ fromJSON(inputs.platforms) }}
     steps:
+      - name: Install LXD
+        uses: canonical/setup-lxd@8c6a87bfb56aa48f3fb9b830baa18562d8bfd4ee # v1
+        with:
+          channel: 6/stable
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.ref }}

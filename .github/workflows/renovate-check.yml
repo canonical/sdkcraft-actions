@@ -8,6 +8,10 @@ on:
         description: "Enable ssh access"
         required: false
         default: false
+    secrets:
+      token:
+        description: "GitHub token or PAT. Use a PAT with repo scope for internal repositories."
+        required: false
 
 jobs:
   renovate:
@@ -31,4 +35,4 @@ jobs:
       - name: Renovate dry-run
         run: renovate --dry-run=full --autodiscover --print-config
         env:
-          RENOVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RENOVATE_TOKEN: ${{ secrets.token }}

@@ -35,4 +35,4 @@ jobs:
       - name: Renovate dry-run
         run: renovate --dry-run=full --autodiscover --print-config
         env:
-          RENOVATE_TOKEN: ${{ secrets.token }}
+          RENOVATE_TOKEN: ${{ secrets.token || github.token }}

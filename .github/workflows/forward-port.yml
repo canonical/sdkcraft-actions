@@ -33,4 +33,5 @@ jobs:
             --head main \
             --base "${{ matrix.branch }}" \
             --title "chore: forward-port from main to ${{ matrix.branch }}" \
-            --body "Forward-port of \`main\` into \`${{ matrix.branch }}\`."
+            --body "Forward-port of \`main\` into \`${{ matrix.branch }}\`." \
+            --reviewer "${{ github.actor }}"

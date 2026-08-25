@@ -44,7 +44,7 @@ on:
         type: boolean
         default: false
       promote-to-latest:
-        description: "Also release to latest/<risk> in addition to the track channel."
+        description: "Also release to latest/<risk>[/<branch>] in addition to the track channel."
         required: false
         type: boolean
         default: false
@@ -139,6 +139,6 @@ jobs:
             [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
             for sdk in *.sdk; do
               CHANNELS="${TRACK}/${INPUT_RISK}${INPUT_BRANCH:+/$INPUT_BRANCH}"
-              [ "$INPUT_PROMOTE_TO_LATEST" = "true" ] && CHANNELS="$CHANNELS,latest/${INPUT_RISK}"
+              [ "$INPUT_PROMOTE_TO_LATEST" = "true" ] && CHANNELS="$CHANNELS,latest/${INPUT_RISK}${INPUT_BRANCH:+/$INPUT_BRANCH}"
               sdkcraft --verbose upload "$sdk" --release "$CHANNELS"
             done

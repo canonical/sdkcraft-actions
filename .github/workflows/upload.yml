@@ -43,6 +43,11 @@ on:
         required: false
         type: boolean
         default: false
+      promote-to-latest:
+        description: "Also release to latest/<risk> in addition to the track channel."
+        required: false
+        type: boolean
+        default: false
     secrets:
       SDKCRAFT_STORE_CREDENTIALS:
         required: true
@@ -123,6 +128,7 @@ jobs:
         env:
           INPUT_RISK: ${{ inputs.risk }}
           INPUT_BRANCH: ${{ inputs.branch }}
+          INPUT_PROMOTE_TO_LATEST: ${{ inputs.promote-to-latest }}
           SDKCRAFT_STORE_CREDENTIALS: ${{ secrets.SDKCRAFT_STORE_CREDENTIALS }}
           SUBDIRECTORY: ${{ inputs.subdirectory }}
         with:
@@ -132,5 +138,7 @@ jobs:
           command: |
             [ -z "$SUBDIRECTORY" ] || cd "$SUBDIRECTORY"
             for sdk in *.sdk; do
-              sdkcraft --verbose upload "$sdk" --release "${TRACK}/${INPUT_RISK}${INPUT_BRANCH:+/$INPUT_BRANCH}"
+              CHANNELS="${TRACK}/${INPUT_RISK}${INPUT_BRANCH:+/$INPUT_BRANCH}"
+              [ "$INPUT_PROMOTE_TO_LATEST" = "true" ] && CHANNELS="$CHANNELS,latest/${INPUT_RISK}"
+              sdkcraft --verbose upload "$sdk" --release "$CHANNELS"
             done

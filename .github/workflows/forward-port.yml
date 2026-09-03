@@ -20,18 +20,27 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Open forward-port PR
         env:
           GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ matrix.branch }}
         run: |
-          if [[ $(gh pr list --head main --base "${{ matrix.branch }}" --json number --jq 'length') -gt 0 ]]; then
-            echo "Forward-port PR already open for ${{ matrix.branch }}, skipping."
+          # A dedicated head branch keeps conflict resolution off the protected main.
+          HEAD_BRANCH="forward-port/main-to-${BRANCH}"
+
+          if [[ $(gh pr list --head "$HEAD_BRANCH" --base "$BRANCH" --json number --jq 'length') -gt 0 ]]; then
+            echo "Forward-port PR already open for ${BRANCH}, skipping."
             exit 0
           fi
+
+          git push --force origin "HEAD:refs/heads/${HEAD_BRANCH}"
+
           gh pr create \
-            --head main \
-            --base "${{ matrix.branch }}" \
-            --title "chore: forward-port from main to ${{ matrix.branch }}" \
-            --body "Forward-port of \`main\` into \`${{ matrix.branch }}\`." \
+            --head "$HEAD_BRANCH" \
+            --base "$BRANCH" \
+            --title "chore: forward-port from main to ${BRANCH}" \
+            --body "Forward-port of \`main\` into \`${BRANCH}\`. Resolve any conflicts by pushing to \`${HEAD_BRANCH}\`, then merge with a merge commit." \
             --reviewer "${{ github.actor }}"

@@ -13,6 +13,12 @@ on:
         required: false
         type: string
         default: '["self-hosted","linux","jammy","x64","xlarge"]'
+      test-disk-size:
+        description: "Size of VM root disk for running tests"
+        required: false
+        type: string
+        default: '20GiB'
+
 
 jobs:
   build:
@@ -44,7 +50,10 @@ jobs:
         if: inputs.run-tests
         run: |
           if [ -f tests/spread.yaml ]; then
+            lxc profile device set default root size="$INPUT_TEST_DISK_SIZE"
             sdkcraft --verbose test
           else
             echo "No tests/spread.yaml found – skipping."
           fi
+        env:
+          INPUT_TEST_DISK_SIZE: ${{ inputs.test-disk-size }}
